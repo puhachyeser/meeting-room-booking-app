@@ -16,6 +16,7 @@ export interface CreateBookingRequest {
   roomId: number;
   startTime: string;
   endTime: string;
+  description: string;
 }
 
 export const bookingsApiSlice = apiSlice.injectEndpoints({

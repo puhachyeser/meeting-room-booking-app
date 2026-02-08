@@ -1,11 +1,14 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetBookingsByRoomQuery } from '../features/bookings/bookings-api-slice';
 import { useGetRoomsQuery } from '../features/rooms/rooms-api-slice';
+import BookingModal from '../components/BookingModal';
+import { useState } from 'react';
 
 const RoomDetails = () => {
   const { id } = useParams<{ id: string }>();
   const roomId = Number(id);
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: rooms } = useGetRoomsQuery();
   const room = rooms?.find(r => r.id === roomId);
@@ -33,7 +36,7 @@ const RoomDetails = () => {
             <h2 className="text-xl font-semibold">Today's Schedule</h2>
             <button 
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-              onClick={() => {/* open modal or form */}}
+              onClick={() => setIsModalOpen(true)}
             >
               Book this room
             </button>
@@ -61,6 +64,12 @@ const RoomDetails = () => {
             )}
           </div>
         </div>
+            <BookingModal 
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)} 
+            roomId={roomId}
+            roomName={room?.name || ''}
+        />
       </div>
     </div>
   );
