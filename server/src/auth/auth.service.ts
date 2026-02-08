@@ -11,7 +11,7 @@ import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 export interface AuthResponse {
-  access_token: string;
+  accessToken: string;
   user: {
     id: number;
     name: string;
@@ -29,7 +29,7 @@ export class AuthService {
   private generateToken(user: User): AuthResponse {
     const payload = { email: user.email, sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload),
       user: {
         id: user.id,
         name: user.name,
