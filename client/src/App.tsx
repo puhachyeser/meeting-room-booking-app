@@ -4,6 +4,7 @@ import { selectIsAuthenticated } from './features/auth/auth-slice';
 import Auth from './pages/Auth';
 import Rooms from './pages/Rooms';
 import CreateRoom from './pages/CreateRoom';
+import RoomDetails from './pages/RoomDetails';
 
 function App() {
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -20,6 +21,7 @@ function App() {
           element={isAuthenticated ? <Rooms /> : <Navigate to="/auth" />} 
         />
         <Route path="/create-room" element={isAuthenticated ? <CreateRoom /> : <Navigate to="/auth" />} />
+        <Route path="/rooms/:id" element={isAuthenticated ? <RoomDetails /> : <Navigate to="/auth" />} />
       </Routes>
     </Router>
   );
