@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated } from './features/auth/auth-slice';
 import Auth from './pages/Auth';
+import Rooms from './pages/Rooms';
 
 function App() {
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -15,7 +16,7 @@ function App() {
         />
         <Route 
           path="/" 
-          element={isAuthenticated ? <div>Main Page (Rooms List coming soon)</div> : <Navigate to="/auth" />} 
+          element={isAuthenticated ? <Rooms /> : <Navigate to="/auth" />} 
         />
       </Routes>
     </Router>
