@@ -1,15 +1,23 @@
 import { apiSlice } from "../../api/api-slice";
 
+export interface Participant {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface Booking {
   id: number;
   roomId: number;
   userId: number;
+  description: string;
   startTime: string;
   endTime: string;
   user?: {
     name: string;
     email: string;
   };
+  participants: Participant[];
 }
 
 export interface CreateBookingRequest {
@@ -39,7 +47,28 @@ export const bookingsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Booking'],
     }),
+    joinBooking: builder.mutation<void, number>({
+    query: (id) => ({
+        url: `/bookings/${id}/join`,
+        method: 'POST',
+    }),
+    invalidatesTags: ['Booking'],
+    }),
+    leaveBooking: builder.mutation<void, number>({
+    query: (id) => ({
+        url: `/bookings/${id}/leave`,
+        method: 'POST',
+    }),
+    invalidatesTags: ['Booking'],
+    }),
+    deleteBooking: builder.mutation<void, number>({
+    query: (id) => ({
+        url: `/bookings/${id}`,
+        method: 'DELETE',
+    }),
+    invalidatesTags: ['Booking', 'Room'],
+    }),
   }),
 });
 
-export const { useGetBookingsByRoomQuery, useCreateBookingMutation } = bookingsApiSlice;
+export const { useGetBookingsByRoomQuery, useCreateBookingMutation, useJoinBookingMutation, useLeaveBookingMutation, useDeleteBookingMutation } = bookingsApiSlice;

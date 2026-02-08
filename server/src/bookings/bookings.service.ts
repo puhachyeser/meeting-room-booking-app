@@ -182,4 +182,19 @@ export class BookingsService {
 
     return await this.bookingsRepository.save(booking);
   }
+
+  async leave(id: number, userId: number) {
+    const booking = await this.bookingsRepository.findOne({
+      where: { id },
+      relations: ['participants'],
+    });
+
+    if (!booking) throw new NotFoundException('Booking not found');
+
+    booking.participants = booking.participants.filter(
+      (user) => user.id !== userId,
+    );
+
+    return await this.bookingsRepository.save(booking);
+  }
 }

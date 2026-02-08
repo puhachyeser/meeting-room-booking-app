@@ -60,4 +60,9 @@ export class BookingsController {
   join(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.bookingsService.join(+id, req.user.id);
   }
+
+  @Post(':id/leave')
+  leave(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.bookingsService.leave(+id, req.user.id);
+  }
 }
