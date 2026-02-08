@@ -14,13 +14,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AddMemberDto } from './dto/add-member.dto';
-
-interface RequestWithUser extends Request {
-  user: {
-    id: number;
-    email: string;
-  };
-}
+import { type RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 
 @Controller('rooms')
 @UseGuards(JwtAuthGuard)

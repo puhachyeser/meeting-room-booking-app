@@ -7,17 +7,12 @@ import {
   Param,
   Delete,
   Req,
+  Query,
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-
-interface RequestWithUser extends Request {
-  user: {
-    id: number;
-    email: string;
-  };
-}
+import { type RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 
 @Controller('bookings')
 export class BookingsController {
@@ -32,7 +27,10 @@ export class BookingsController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query('roomId') roomId?: string) {
+    if (roomId) {
+      return this.bookingsService.findByRoom(+roomId);
+    }
     return this.bookingsService.findAll();
   }
 
@@ -53,5 +51,10 @@ export class BookingsController {
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.bookingsService.remove(+id, req.user.id);
+  }
+
+  @Post(':id/join')
+  join(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.bookingsService.join(+id, req.user.id);
   }
 }

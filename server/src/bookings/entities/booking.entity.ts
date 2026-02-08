@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { MeetingRoom } from '../../rooms/entities/room.entity';
 
@@ -21,4 +28,8 @@ export class Booking {
 
   @ManyToOne(() => MeetingRoom, { onDelete: 'CASCADE' })
   room: MeetingRoom;
+
+  @ManyToMany(() => User)
+  @JoinTable()
+  participants: User[];
 }

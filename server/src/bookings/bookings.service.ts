@@ -64,6 +64,7 @@ export class BookingsService {
       endTime: end,
       room: room,
       user: { id: userId } as User,
+      participants: [{ id: userId } as User],
     });
 
     return await this.bookingsRepository.save(booking);
@@ -85,6 +86,16 @@ export class BookingsService {
       throw new NotFoundException(`Booking with ID ${id} not found`);
     }
     return booking;
+  }
+
+  async findByRoom(roomId: number) {
+    await this.roomsService.findOne(roomId);
+
+    return await this.bookingsRepository.find({
+      where: { room: { id: roomId } },
+      relations: ['user', 'participants'],
+      order: { startTime: 'ASC' },
+    });
   }
 
   async update(
@@ -141,5 +152,34 @@ export class BookingsService {
 
     await this.bookingsRepository.remove(booking);
     return { success: true };
+  }
+
+  async join(id: number, userId: number) {
+    const booking = await this.bookingsRepository.findOne({
+      where: { id },
+      relations: ['room', 'participants'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with ID ${id} not found`);
+    }
+
+    const role = await this.roomsService.getMemberRole(booking.room.id, userId);
+    if (!role) {
+      throw new ForbiddenException(
+        'You must be a member of the room to join this booking',
+      );
+    }
+
+    const isAlreadyJoined = booking.participants.some(
+      (user) => user.id === userId,
+    );
+    if (isAlreadyJoined) {
+      throw new BadRequestException('You have already joined this booking');
+    }
+
+    booking.participants.push({ id: userId } as User);
+
+    return await this.bookingsRepository.save(booking);
   }
 }
