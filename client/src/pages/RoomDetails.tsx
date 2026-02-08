@@ -9,6 +9,7 @@ import {
 } from '../features/bookings/bookings-api-slice';
 import { useGetRoomsQuery } from '../features/rooms/rooms-api-slice';
 import BookingModal from '../components/BookingModal';
+import { type ApiError } from '../types/auth.types';
 
 interface RootState {
   auth: {
@@ -39,6 +40,24 @@ const RoomDetails = () => {
 
   if (isLoading) return <div className="p-10 text-center font-medium">Loading schedule...</div>;
   if (error) return <div className="p-10 text-center text-red-500 font-medium">Error loading schedule</div>;
+
+  const handleJoin = async (bookingId: number) => {
+    try {
+      await joinBooking(bookingId).unwrap();
+    } catch (err) {
+      const apiError = err as ApiError;
+      alert(apiError.data?.message || 'You cannot join this meeting. Make sure you are a member of this room.');
+    }
+  };
+
+  const handleLeave = async (bookingId: number) => {
+    try {
+      await leaveBooking(bookingId).unwrap();
+    } catch (err) {
+      const apiError = err as ApiError;
+      alert(apiError.data?.message || 'Failed to leave the meeting');
+    }
+  };
 
   const handleDelete = async (bookingId: number) => {
     if (window.confirm('Are you sure you want to delete this booking?')) {
@@ -106,17 +125,17 @@ const RoomDetails = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2 min-w-[100px]">
+                      <div className="flex flex-col gap-2 min-w-[120px]">
                         {!isParticipant ? (
                           <button 
-                            onClick={() => joinBooking(booking.id)}
+                            onClick={() => handleJoin(booking.id)}
                             className="w-full py-1.5 text-xs font-bold bg-white text-green-600 border border-green-600 rounded-md hover:bg-green-600 hover:text-white transition"
                           >
                             Join Meeting
                           </button>
                         ) : (
                           <button 
-                            onClick={() => leaveBooking(booking.id)}
+                            onClick={() => handleLeave(booking.id)}
                             className="w-full py-1.5 text-xs font-bold bg-white text-orange-500 border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white transition"
                           >
                             Leave
