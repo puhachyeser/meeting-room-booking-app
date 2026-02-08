@@ -13,6 +13,12 @@ export interface RoomsApiError {
   status: number;
 }
 
+export interface AddMemberRequest {
+  roomId: number;
+  email: string;
+  role: 'admin' | 'user';
+}
+
 export const roomsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getRooms: builder.query<Room[], void>({
@@ -27,7 +33,15 @@ export const roomsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Room'],
     }),
+    addRoomMember: builder.mutation<void, AddMemberRequest>({
+      query: ({ roomId, ...body }) => ({
+        url: `/rooms/${roomId}/members`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Room'],
+    }),
   }),
 });
 
-export const { useGetRoomsQuery, useCreateRoomMutation } = roomsApiSlice;
+export const { useGetRoomsQuery, useCreateRoomMutation, useAddRoomMemberMutation } = roomsApiSlice;

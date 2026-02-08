@@ -9,6 +9,7 @@ import {
 } from '../features/bookings/bookings-api-slice';
 import { useGetRoomsQuery } from '../features/rooms/rooms-api-slice';
 import BookingModal from '../components/BookingModal';
+import AddMemberModal from '../components/AddMemberModal';
 import { type ApiError } from '../types/auth.types';
 
 interface RootState {
@@ -25,20 +26,21 @@ const RoomDetails = () => {
   const { id } = useParams<{ id: string }>();
   const roomId = Number(id);
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
   const { data: rooms } = useGetRoomsQuery();
   const room = rooms?.find(r => r.id === roomId);
-
   const { data: bookings, isLoading, error } = useGetBookingsByRoomQuery(roomId);
   
   const [joinBooking] = useJoinBookingMutation();
   const [leaveBooking] = useLeaveBookingMutation();
   const [deleteBooking] = useDeleteBookingMutation();
 
-  if (isLoading) return <div className="p-10 text-center font-medium">Loading schedule...</div>;
+  if (isLoading) return <div className="p-10 text-center font-medium text-gray-500">Loading schedule...</div>;
   if (error) return <div className="p-10 text-center text-red-500 font-medium">Error loading schedule</div>;
 
   const handleJoin = async (bookingId: number) => {
@@ -46,7 +48,7 @@ const RoomDetails = () => {
       await joinBooking(bookingId).unwrap();
     } catch (err) {
       const apiError = err as ApiError;
-      alert(apiError.data?.message || 'You cannot join this meeting. Make sure you are a member of this room.');
+      alert(apiError.data?.message || 'You cannot join this meeting.');
     }
   };
 
@@ -75,68 +77,81 @@ const RoomDetails = () => {
       <div className="max-w-4xl mx-auto">
         <button 
           onClick={() => navigate('/')}
-          className="mb-6 text-blue-600 hover:text-blue-800 transition flex items-center font-medium"
+          className="mb-6 text-blue-600 hover:text-blue-800 transition flex items-center font-semibold"
         >
           ← Back to Rooms
         </button>
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{room?.name || 'Room Details'}</h1>
-          <p className="text-gray-600">{room?.description}</p>
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl font-extrabold text-gray-800 mb-2">{room?.name || 'Room Details'}</h1>
+            <p className="text-gray-500 max-w-md">{room?.description || 'No description available for this room.'}</p>
+          </div>
+          <button 
+            onClick={() => setIsMemberModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 border-2 border-gray-100 text-gray-600 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-all font-bold text-sm bg-white shadow-sm"
+          >
+            Manage Members
+          </button>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-            <h2 className="text-xl font-semibold text-gray-800">Room Schedule</h2>
+            <h2 className="text-xl font-bold text-gray-800">Room Schedule</h2>
             <button 
-              className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm font-medium"
-              onClick={() => setIsModalOpen(true)}
+              className="bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-md shadow-blue-100 font-bold text-sm"
+              onClick={() => setIsBookingModalOpen(true)}
             >
-              Book this room
+              + Book Room
             </button>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-50">
             {bookings && bookings.length > 0 ? (
               bookings.map((booking) => {
                 const isParticipant = booking.participants?.some(p => p.id === currentUser?.id);
                 const isCreator = booking.userId === currentUser?.id;
 
                 return (
-                  <div key={booking.id} className="p-6 hover:bg-gray-50 transition">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-gray-900">
-                            {new Date(booking.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
+                  <div key={booking.id} className="p-6 hover:bg-gray-50/50 transition-colors">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="flex items-center gap-2 text-xl font-black text-gray-900 tracking-tight">
+                            {new Date(booking.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <span className="text-gray-400 font-normal">—</span>
                             {new Date(booking.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                          <span className="px-2.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase">
-                            Confirmed
+                          <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-green-100">
+                            Active
                           </span>
                         </div>
-                        <p className="text-gray-700 font-medium">{booking.description}</p>
-                        <div className="flex flex-col gap-1">
-                          <p className="text-xs text-gray-500">Organized by: <span className="font-semibold">{booking.user?.name}</span></p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            <span className="text-[10px] text-gray-400 uppercase font-bold w-full">Participants:</span>
+                        <div>
+                          <p className="text-gray-800 font-bold text-lg leading-tight">{booking.description}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Organized by <span className="text-gray-600 font-semibold">{booking.user?.name}</span>
+                          </p>
+                        </div>
+                        <div className="pt-2">
+                          <p className="text-[10px] text-gray-400 uppercase font-black mb-2 tracking-tighter">Participants</p>
+                          <div className="flex flex-wrap gap-1.5">
                             {booking.participants?.map(p => (
-                              <span key={p.id} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200">
+                              <span key={p.id} className="px-2.5 py-1 bg-white text-gray-600 text-xs rounded-lg border border-gray-200 shadow-sm font-medium">
                                 {p.name}
                               </span>
                             ))}
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2 min-w-[120px]">
+                      <div className="flex flex-col gap-2 min-w-[130px]">
                         {!isParticipant ? (
                           <button 
                             onClick={() => handleJoin(booking.id)}
-                            className="w-full py-1.5 text-xs font-bold bg-white text-green-600 border border-green-600 rounded-md hover:bg-green-600 hover:text-white transition"
+                            className="w-full py-2 text-xs font-black bg-white text-green-600 border-2 border-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all uppercase tracking-tight"
                           >
                             Join Meeting
                           </button>
                         ) : (
                           <button 
                             onClick={() => handleLeave(booking.id)}
-                            className="w-full py-1.5 text-xs font-bold bg-white text-orange-500 border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white transition"
+                            className="w-full py-2 text-xs font-black bg-white text-orange-500 border-2 border-orange-500 rounded-xl hover:bg-orange-500 hover:text-white transition-all uppercase tracking-tight"
                           >
                             Leave
                           </button>
@@ -144,9 +159,9 @@ const RoomDetails = () => {
                         {isCreator && (
                           <button 
                             onClick={() => handleDelete(booking.id)}
-                            className="w-full py-1.5 text-xs font-bold bg-white text-red-500 border border-red-500 rounded-md hover:bg-red-500 hover:text-white transition"
+                            className="w-full py-2 text-xs font-black bg-white text-red-500 border-2 border-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all uppercase tracking-tight"
                           >
-                            Delete
+                            Cancel
                           </button>
                         )}
                       </div>
@@ -155,15 +170,23 @@ const RoomDetails = () => {
                 );
               })
             ) : (
-              <div className="p-16 text-center text-gray-400 italic">
-                No bookings for this room yet. Be the first to book!
+              <div className="p-20 text-center">
+                <div className="text-4xl mb-4">🗓️</div>
+                <p className="text-gray-400 italic font-medium">No bookings for this room yet.</p>
+                <p className="text-gray-300 text-sm mt-1">Be the first to schedule a meeting!</p>
               </div>
             )}
           </div>
         </div>
         <BookingModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
+          isOpen={isBookingModalOpen} 
+          onClose={() => setIsBookingModalOpen(false)} 
+          roomId={roomId}
+          roomName={room?.name || ''}
+        />
+        <AddMemberModal 
+          isOpen={isMemberModalOpen}
+          onClose={() => setIsMemberModalOpen(false)}
           roomId={roomId}
           roomName={room?.name || ''}
         />
