@@ -26,6 +26,18 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  private generateToken(user: User): AuthResponse {
+    const payload = { email: user.email, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    };
+  }
+
   async register(dto: CreateUserDto) {
     const candidate = await this.usersService.findByEmail(dto.email);
     if (candidate) {
@@ -53,17 +65,5 @@ export class AuthService {
     }
 
     return this.generateToken(user);
-  }
-
-  private generateToken(user: User): AuthResponse {
-    const payload = { email: user.email, sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-    };
   }
 }
