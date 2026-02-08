@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -10,6 +11,8 @@ import { RoomMember, RoomRole } from './entities/room-member.entity';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { User } from '../users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
+import { AddMemberDto } from './dto/add-member.dto';
 
 @Injectable()
 export class RoomsService {
@@ -18,6 +21,7 @@ export class RoomsService {
     private roomsRepository: Repository<MeetingRoom>,
     @InjectRepository(RoomMember)
     private roomMemberRepository: Repository<RoomMember>,
+    private usersService: UsersService,
   ) {}
 
   private async ensureAdmin(roomId: number, userId: number) {
@@ -78,5 +82,29 @@ export class RoomsService {
     const room = await this.findOne(id);
     await this.roomsRepository.remove(room);
     return { success: true };
+  }
+
+  async addMember(roomId: number, dto: AddMemberDto, currentUserId: number) {
+    await this.ensureAdmin(roomId, currentUserId);
+
+    const userToAdd = await this.usersService.findByEmail(dto.email);
+    if (!userToAdd) {
+      throw new NotFoundException(`User with email ${dto.email} not found`);
+    }
+
+    const existingMember = await this.roomMemberRepository.findOne({
+      where: { room: { id: roomId }, user: { id: userToAdd.id } },
+    });
+    if (existingMember) {
+      throw new BadRequestException('User is already a member of this room');
+    }
+
+    const newMember = this.roomMemberRepository.create({
+      room: { id: roomId },
+      user: userToAdd,
+      role: dto.role,
+    });
+
+    return await this.roomMemberRepository.save(newMember);
   }
 }

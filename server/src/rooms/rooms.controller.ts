@@ -13,6 +13,7 @@ import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AddMemberDto } from './dto/add-member.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -53,5 +54,14 @@ export class RoomsController {
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.roomsService.remove(+id, req.user.id);
+  }
+
+  @Post(':id/members')
+  addMember(
+    @Param('id') id: string,
+    @Body() addMemberDto: AddMemberDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.roomsService.addMember(+id, addMemberDto, req.user.id);
   }
 }
