@@ -107,4 +107,11 @@ export class RoomsService {
 
     return await this.roomMemberRepository.save(newMember);
   }
+
+  async getMemberRole(roomId: number, userId: number) {
+    const member = await this.roomMemberRepository.findOne({
+      where: { room: { id: roomId }, user: { id: userId } },
+    });
+    return member ? member.role : null;
+  }
 }
