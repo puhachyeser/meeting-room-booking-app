@@ -10,6 +10,7 @@ import {
 import { useGetRoomsQuery, useDeleteRoomMutation } from '../features/rooms/rooms-api-slice';
 import BookingModal from '../components/BookingModal';
 import AddMemberModal from '../components/AddMemberModal';
+import EditRoomModal from '../components/EditRoomModal';
 import { type ApiError } from '../types/auth.types';
 
 interface RootState {
@@ -29,6 +30,7 @@ const RoomDetails = () => {
   
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
@@ -94,21 +96,30 @@ const RoomDetails = () => {
         >
           ← Back to Rooms
         </button>
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl font-extrabold text-gray-800 mb-2">{room?.name || 'Room Details'}</h1>
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-3xl font-extrabold text-gray-800">{room?.name || 'Room Details'}</h1>
+              <button 
+                onClick={() => setIsEditModalOpen(true)}
+                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                title="Edit Room Info"
+              >
+                ✏️
+              </button>
+            </div>
             <p className="text-gray-500 max-w-md">{room?.description || 'No description available for this room.'}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full md:w-auto">
             <button 
               onClick={() => setIsMemberModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 border-2 border-gray-100 text-gray-600 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-all font-bold text-sm bg-white shadow-sm"
+              className="flex-1 md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 border-2 border-gray-100 text-gray-600 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-all font-bold text-sm bg-white shadow-sm"
             >
               Manage Members
             </button>
             <button 
               onClick={handleDeleteRoom}
-              className="flex items-center gap-2 px-5 py-2.5 border-2 border-red-50 text-red-500 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all font-bold text-sm bg-white shadow-sm"
+              className="flex-1 md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 border-2 border-red-50 text-red-500 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all font-bold text-sm bg-white shadow-sm"
             >
               Delete Room
             </button>
@@ -211,6 +222,13 @@ const RoomDetails = () => {
           roomId={roomId}
           roomName={room?.name || ''}
         />
+        {room && (
+          <EditRoomModal 
+            room={{ id: room.id, name: room.name, description: room.description || '' }}
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+          />
+        )}
       </div>
     </div>
   );
