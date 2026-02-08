@@ -7,7 +7,7 @@ import {
   useLeaveBookingMutation, 
   useDeleteBookingMutation 
 } from '../features/bookings/bookings-api-slice';
-import { useGetRoomsQuery } from '../features/rooms/rooms-api-slice';
+import { useGetRoomsQuery, useDeleteRoomMutation } from '../features/rooms/rooms-api-slice';
 import BookingModal from '../components/BookingModal';
 import AddMemberModal from '../components/AddMemberModal';
 import { type ApiError } from '../types/auth.types';
@@ -39,6 +39,7 @@ const RoomDetails = () => {
   const [joinBooking] = useJoinBookingMutation();
   const [leaveBooking] = useLeaveBookingMutation();
   const [deleteBooking] = useDeleteBookingMutation();
+  const [deleteRoom] = useDeleteRoomMutation();
 
   if (isLoading) return <div className="p-10 text-center font-medium text-gray-500">Loading schedule...</div>;
   if (error) return <div className="p-10 text-center text-red-500 font-medium">Error loading schedule</div>;
@@ -61,13 +62,25 @@ const RoomDetails = () => {
     }
   };
 
-  const handleDelete = async (bookingId: number) => {
+  const handleDeleteBooking = async (bookingId: number) => {
     if (window.confirm('Are you sure you want to delete this booking?')) {
       try {
         await deleteBooking(bookingId).unwrap();
       } catch (err) {
         alert('Failed to delete booking');
         console.error(err);
+      }
+    }
+  };
+
+  const handleDeleteRoom = async () => {
+    if (window.confirm('Are you sure you want to PERMANENTLY delete this room? All bookings will be lost.')) {
+      try {
+        await deleteRoom(roomId).unwrap();
+        navigate('/');
+      } catch (err) {
+        const apiError = err as ApiError;
+        alert(apiError.data?.message || 'Failed to delete room. Only admins can do this.');
       }
     }
   };
@@ -86,12 +99,20 @@ const RoomDetails = () => {
             <h1 className="text-3xl font-extrabold text-gray-800 mb-2">{room?.name || 'Room Details'}</h1>
             <p className="text-gray-500 max-w-md">{room?.description || 'No description available for this room.'}</p>
           </div>
-          <button 
-            onClick={() => setIsMemberModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 border-2 border-gray-100 text-gray-600 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-all font-bold text-sm bg-white shadow-sm"
-          >
-            Manage Members
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setIsMemberModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 border-2 border-gray-100 text-gray-600 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-all font-bold text-sm bg-white shadow-sm"
+            >
+              Manage Members
+            </button>
+            <button 
+              onClick={handleDeleteRoom}
+              className="flex items-center gap-2 px-5 py-2.5 border-2 border-red-50 text-red-500 rounded-xl hover:border-red-500 hover:bg-red-50 transition-all font-bold text-sm bg-white shadow-sm"
+            >
+              Delete Room
+            </button>
+          </div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
@@ -144,22 +165,22 @@ const RoomDetails = () => {
                         {!isParticipant ? (
                           <button 
                             onClick={() => handleJoin(booking.id)}
-                            className="w-full py-2 text-xs font-black bg-white text-green-600 border-2 border-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all uppercase tracking-tight"
+                            className="w-full py-2 text-xs font-black bg-white text-green-600 border-2 border-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all uppercase tracking-tight shadow-sm"
                           >
                             Join Meeting
                           </button>
                         ) : (
                           <button 
                             onClick={() => handleLeave(booking.id)}
-                            className="w-full py-2 text-xs font-black bg-white text-orange-500 border-2 border-orange-500 rounded-xl hover:bg-orange-500 hover:text-white transition-all uppercase tracking-tight"
+                            className="w-full py-2 text-xs font-black bg-white text-orange-500 border-2 border-orange-500 rounded-xl hover:bg-orange-500 hover:text-white transition-all uppercase tracking-tight shadow-sm"
                           >
                             Leave
                           </button>
                         )}
                         {isCreator && (
                           <button 
-                            onClick={() => handleDelete(booking.id)}
-                            className="w-full py-2 text-xs font-black bg-white text-red-500 border-2 border-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all uppercase tracking-tight"
+                            onClick={() => handleDeleteBooking(booking.id)}
+                            className="w-full py-2 text-xs font-black bg-white text-red-500 border-2 border-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all uppercase tracking-tight shadow-sm"
                           >
                             Cancel
                           </button>

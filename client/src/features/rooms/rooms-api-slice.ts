@@ -41,7 +41,14 @@ export const roomsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Room'],
     }),
+    deleteRoom: builder.mutation<{ success: boolean }, number>({
+      query: (id) => ({
+        url: `/rooms/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Room'],
+    }),
   }),
 });
 
-export const { useGetRoomsQuery, useCreateRoomMutation, useAddRoomMemberMutation } = roomsApiSlice;
+export const { useGetRoomsQuery, useCreateRoomMutation, useAddRoomMemberMutation, useDeleteRoomMutation } = roomsApiSlice;
